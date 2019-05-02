@@ -3,6 +3,10 @@ __Cliptomania__ is a lightwight clip library, made to recreate [Clipboard](https
 Full compatibility is not prioritized at given moment, but desirable in future.  
 ❗ Currently only compiles on Windows systems ❗
 
+# •Featuræ•
+* Multiple data formats dispatch.
+* Enforced prefix (`clip.`) API isolation.
+
 # •Remark•
 Since __Cliptomania__ was developed mainly for internal usage, no documentation will likely be included before v0.3.  
 Provided examples and reading original .NET docs is a way to understand how to use this lib until then.
