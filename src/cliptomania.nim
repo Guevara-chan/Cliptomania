@@ -77,7 +77,6 @@ when not defined(clip):
                 header: DropFiles
                 accum: seq[int16] = @[]
             header.addr.copyMem feed[0].addr, header.sizeOf
-            echo header
             for idx, byte in feed[header.pFiles..^1]:
                 let c = (if header.fWide == 0: byte.int16 else: utf16_feed[idx+header.pFiles shr 1])
                 if c != 0: accum &= c
