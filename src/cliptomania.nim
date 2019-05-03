@@ -2,7 +2,6 @@
 # Cliptomania clipboard library v0.1
 # Developed in 2019 by V.A. Guevara
 # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- #
-import unicode
 
 # [OS-dependent bindings]
 when defined(windows):
@@ -70,14 +69,17 @@ when not defined(clip):
     converter to_drop_list*(src: clip.fragment): seq[string] =
         var feed = src.data
         result = newSeq[string](0)
-        let utf16_feed = cast[seq[Rune16]](feed)
+        let utf16_feed = cast[seq[int16]](feed)
         if feed.len > 0:
             let header = cast[DropFiles](feed[0].addr)
-            var accum = ""
+            var accum: seq[int16] = @[]
             for idx, byte in feed[header.sizeOf..^1]:
-                let c = (if header.fWide == 0: byte.Rune else: utf16_feed[idx+header.sizeOf shr 1].Rune)
-                if c.int != 0: accum &= $c
-                elif accum != "": result.add(accum); accum = ""
+                let c = (if header.fWide == 0: byte.int16 else: utf16_feed[idx+header.sizeOf shr 1])
+                if c != 0: accum &= c
+                elif accum != @[]:
+                    accum.setLen accum.len * 2
+                    result.add($(format: clip.formats.text, data: cast[seq[byte]](accum)))
+                    accum = @[]
 
     converter to_byte_seq(src: clip.fragment): seq[byte] =
         src.data
