@@ -57,9 +57,9 @@ when not defined(clip):
             var utf16_path = cast[seq[int16]](entry.to_clip_fragment.data)
             utf16_path.setLen utf16_path.len shr 1
             for c in utf16_path: buffer &= c
-            buffer &= 0.int16
         for i in 1..2: buffer &= 0.int16
         buffer.setLen buffer.len * 2
+        echo cast[seq[byte]](buffer)
         return (format: clip.formats.file_drop, data: cast[seq[byte]](buffer))
 
     proc `$`*(src: clip.fragment): string =
