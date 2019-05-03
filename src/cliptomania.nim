@@ -64,6 +64,18 @@ when not defined(clip):
         var utf16 = src
         return $(cast[WideCString](utf16[0].addr))
 
+    converter toDropList*(src: Bytes): seq[string] =
+        result = newSeq[string](0)
+        var feed = src
+        let utf16_feed = cast[seq[Rune16]](feed)
+        if feed.len > 0:
+            let header = cast[DropFiles](feed[0].addr)
+            var accum = ""
+            for idx, byte in feed[header.sizeOf..^1]:
+                let c = (if header.fWide == 0: byte.Rune else: utf16_feed[idx+header.sizeOf shr 1].Rune)
+                if c.int != 0: accum &= $c
+                elif accum != "": result.add(accum); accum = ""
+
     # •Public methods•
     proc clear*(Δ) =
         open_clipboard()
@@ -116,16 +128,7 @@ when not defined(clip):
         clip.contains_data clip.formats.unicode_text
 
     proc get_file_drop_list*(Δ): seq[string] =
-        result = newSeq[string](0)
-        var feed = clip.get_data clip.formats.file_drop
-        let utf16_feed = cast[seq[Rune16]](feed)
-        if feed.len > 0:
-            let header = cast[DropFiles](feed[0].addr)
-            var accum = ""
-            for idx, byte in feed[header.sizeOf..^1]:
-                let c = (if header.fWide == 0: byte.Rune else: utf16_feed[idx+header.sizeOf shr 1].Rune)
-                if c.int != 0: accum &= $c
-                elif accum != "": result.add(accum); accum = ""
+        clip.get_data clip.formats.file_drop
 
     proc set_file_drop_list*(Δ; list: seq[string]) =
         clip.set_data clip.formats.file_drop, list
