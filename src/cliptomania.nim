@@ -55,7 +55,8 @@ when not defined(clip):
             header = cast[DropFiles](buffer)
         header.fWide = 1
         for entry in src:
-            for c in entry.runes: buffer &= c.int16
+            var utf16_feed = cast[seq[int16]](entry.to_clip_fragment.data)
+            for c in utf16_feed: buffer &= c
             buffer &= 0.int16
         for i in 1..2: buffer &= 0.int16
         buffer.setLen buffer.len * 2
