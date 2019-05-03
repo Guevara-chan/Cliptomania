@@ -86,6 +86,9 @@ when not defined(clip):
     converter to_byte_seq(src: clip.fragment): seq[byte] =
         src.data
 
+    converter to_clip_format(src: clip.fragment): clip.formats =
+        src.format
+
     # •Public methods•
     proc get_data_list*(Δ; formats: varargs[clip.formats]): seq[clip.fragment] =
         result = newSeq[clip.fragment](0)
