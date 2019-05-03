@@ -32,8 +32,7 @@ when not defined(clip):
     # --Service definitions:
     type
         clip*        = object
-        Bytes        = seq[byte]
-        scrap        = tuple[format: clip_formats, data: Bytes]
+        DataFragment = tuple[format: clip_formats, data: seq[byte]]
         clip_formats = enum
             text = 1, bitmap, metafile_picture, symbolic_link, dif, tiff, oem_text, dib, palette, pen_data, riff, 
             wave_audio, unicode_text, enhanced_metafile, file_drop, locale, dib_v5
@@ -43,29 +42,30 @@ when not defined(clip):
 
     # --Methods goes here:
     # •Aux converters & helpers•
-    converter to_bytes*(src: string): Bytes =
+    converter to_data_fragment*(src: string): DataFragment =
         var wide_text = newWideCString(src)
-        result = newSeq[byte](wide_text.len * 2 + 2)
-        result[0].addr.copyMem wide_text[0].addr, result.len
+        var buffer = newSeq[byte](wide_text.len * 2 + 2)
+        buffer[0].addr.copyMem wide_text[0].addr, buffer.len
+        return (format: clip.formats.unicode_text, data: buffer)
 
-    converter to_bytes*(src: seq[string]): Bytes =
+    converter to_data_fragment*(src: seq[string]): DataFragment =
         var
             buffer = newSeq[int16](DropFiles.sizeOf shr 1)
-        var header = cast[DropFiles](buffer)
+            header = cast[DropFiles](buffer)
         header.fWide = 1
         for entry in src:
             for c in entry.runes: buffer &= c.int16
             buffer &= 0.int16
         for i in 1..2: buffer &= 0.int16
         buffer.setLen buffer.len * 2
-        return cast[seq[byte]](buffer)
+        return (format: clip.formats.file_drop, data: cast[seq[byte]](buffer))
 
-    proc `$`*(src: Bytes): string =
-        var utf16 = src
+    proc `$`*(src: DataFragment): string =
+        var utf16 = src.data
         return $cast[WideCString](utf16[0].addr)
 
-    converter to_drop_list*(src: Bytes): seq[string] =
-        var feed = src
+    converter to_drop_list*(src: DataFragment): seq[string] =
+        var feed = src.data
         result = newSeq[string](0)
         let utf16_feed = cast[seq[Rune16]](feed)
         if feed.len > 0:
@@ -76,9 +76,8 @@ when not defined(clip):
                 if c.int != 0: accum &= $c
                 elif accum != "": result.add(accum); accum = ""
 
-    proc clip_format(src: auto): clip.formats =
-        when type(src) is seq[string]: clip.formats.file_drop
-        else: clip.formats.unicode_text
+    converter to_byte_seq(src: DataFragment): seq[byte] =
+        src.data
 
     # •Public methods•
     proc clear*(Δ) =
@@ -86,8 +85,8 @@ when not defined(clip):
         empty_clipboard()
         close_clipboard()
 
-    proc get_data_list*(Δ; formats: varargs[clip.formats]): seq[scrap] =
-        result = newSeq[scrap](0)
+    proc get_data_list*(Δ; formats: varargs[clip.formats]): seq[DataFragment] =
+        result = newSeq[DataFragment](0)
         open_clipboard()
         for format in formats:
             let data = format.uint.get_clipboard_data
@@ -101,7 +100,7 @@ when not defined(clip):
             else: result.add (format, @[])
         close_clipboard()
 
-    proc set_data_list*(Δ; list: varargs[scrap]) =
+    proc set_data_list*(Δ; list: varargs[DataFragment]) =
         open_clipboard()
         empty_clipboard()
         for entry in list:
@@ -113,11 +112,14 @@ when not defined(clip):
             discard format.uint.set_clipboard_data buffer
         close_clipboard()
 
-    proc get_data*(Δ; format: clip.formats): Bytes =
-        clip.get_data_list(format)[0].data        
+    proc get_data*(Δ; format: clip.formats): DataFragment =
+        clip.get_data_list(format)[0]
 
-    proc set_data*(Δ; format: clip.formats, data: Bytes) =
+    proc set_data*(Δ; format: clip.formats, data: seq[byte]) =
         clip.set_data_list (format, data)
+
+    proc set_data*(Δ; fragment: DataFragment) =
+        clip.set_data_list (fragment.format, fragment.data)
 
     proc contains_data*(Δ; format: clip.formats): bool =
         format.uint.clipboard_format_available != 0
@@ -126,7 +128,7 @@ when not defined(clip):
         return $clip.get_data clip.formats.unicode_text
 
     proc set_text*(Δ; text: string) =
-        clip.set_data text.clipFormat, text
+        clip.set_data text
 
     proc contains_text*(Δ): bool =
         clip.contains_data clip.formats.unicode_text
@@ -135,7 +137,7 @@ when not defined(clip):
         clip.get_data clip.formats.file_drop
 
     proc set_file_drop_list*(Δ; list: seq[string]) =
-        clip.set_data list.clipFormat, list
+        clip.set_data list
 
     proc contains_file_drop_list*(Δ): bool =
         clip.contains_data clip.formats.file_drop
