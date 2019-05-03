@@ -29,6 +29,7 @@ else: {.fatal: "FAULT:: only Windows OS is supported for now !".}
 
 #.{ [Classes]
 when not defined(clip):
+    # --Service definitions:
     type
         clip         = object
         Bytes        = seq[byte]
@@ -41,6 +42,17 @@ when not defined(clip):
         Δ: type clip
 
     # --Methods goes here:
+    # •Aux converters•
+    converter toBytes(src: string): Bytes =
+        var wide_text = newWideCString(src)
+        result = newSeq[byte](wide_text.len * 2 + 2)
+        result[0].addr.copyMem wide_text[0].addr, result.len
+
+    proc `$`*(src: Bytes): string =
+        var utf16 = src
+        return $(cast[WideCString](utf16[0].addr))
+
+    # •Public methods•
     proc clear*(Δ) =
         open_clipboard()
         empty_clipboard()
@@ -73,24 +85,20 @@ when not defined(clip):
             discard format.uint.set_clipboard_data(buffer)
         close_clipboard()
 
-    proc get_data*(Δ; format = clip.formats.unicode_text): Bytes =
+    proc get_data*(Δ; format: clip.formats): Bytes =
         clip.get_data_list(format)[0].data        
 
-    proc set_data*(Δ; format = clip.formats.unicode_text, data: Bytes) =
+    proc set_data*(Δ; format: clip.formats, data: Bytes) =
         clip.set_data_list((format, data))
 
-    proc contains_data*(Δ; format = clip.formats.unicode_text): bool =
+    proc contains_data*(Δ; format: clip.formats): bool =
         format.uint.clipboard_format_available != 0
 
     proc get_text*(Δ): string =
-        var utf16 = clip.get_data(clip.formats.unicode_text)
-        return $(cast[WideCString](utf16[0].addr))
+        return $(clip.get_data(clip.formats.unicode_text))
 
-    proc set_text*(Δ; text: string) = 
-        var wide_text = newWideCString(text)
-        var utf16 = newSeq[byte](wide_text.len * 2 + 2)
-        utf16[0].addr.copyMem wide_text[0].addr, utf16.len
-        clip.set_data(data=utf16)
+    proc set_text*(Δ; text: string) =
+        clip.set_data(clip.formats.unicode_text, text)
 
     proc contains_text*(Δ): bool =
         clip.contains_data(clip.formats.unicode_text)
@@ -127,5 +135,5 @@ when not defined(clip):
 when isMainModule:
     clip.set_text("Hallo there.")
     if clip.contains_text: echo clip.get_text()
-    clip.set_file_drop_list(@["C:\\a.txt"])
+    clip.set_file_drop_list(@[r"C:\a.txt"])
     if clip.contains_file_drop_list: echo clip.get_file_drop_list()
