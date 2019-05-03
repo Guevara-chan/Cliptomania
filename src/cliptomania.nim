@@ -81,8 +81,8 @@ when not defined(clip):
                 var buffer = newSeq[byte](data_size)
                 buffer[0].addr.copyMem feed, data_size
                 data.global_unlock
-                result.add((format, buffer))
-            else: result.add((format, @[]))
+                result.add (format, buffer)
+            else: result.add (format, @[])
         close_clipboard()
 
     proc set_data_list*(Δ; list: varargs[scrap]) =
@@ -90,30 +90,30 @@ when not defined(clip):
         empty_clipboard()
         for entry in list:
             var (format, data) = entry
-            let buffer = 66.global_alloc(data.len)
+            let buffer = 66.global_alloc data.len
             let dest = buffer.global_lock
             dest.copyMem data[0].addr, data.len
             buffer.global_unlock
-            discard format.uint.set_clipboard_data(buffer)
+            discard format.uint.set_clipboard_data buffer
         close_clipboard()
 
     proc get_data*(Δ; format: clip.formats): Bytes =
         clip.get_data_list(format)[0].data        
 
     proc set_data*(Δ; format: clip.formats, data: Bytes) =
-        clip.set_data_list((format, data))
+        clip.set_data_list (format, data)
 
     proc contains_data*(Δ; format: clip.formats): bool =
         format.uint.clipboard_format_available != 0
 
     proc get_text*(Δ): string =
-        return $(clip.get_data(clip.formats.unicode_text))
+        return $(clip.get_data clip.formats.unicode_text)
 
     proc set_text*(Δ; text: string) =
-        clip.set_data(clip.formats.unicode_text, text)
+        clip.set_data clip.formats.unicode_text, text
 
     proc contains_text*(Δ): bool =
-        clip.contains_data(clip.formats.unicode_text)
+        clip.contains_data clip.formats.unicode_text
 
     proc get_file_drop_list*(Δ): seq[string] =
         result = newSeq[string](0)
@@ -131,12 +131,12 @@ when not defined(clip):
         clip.set_data clip.formats.file_drop, list
 
     proc contains_file_drop_list*(Δ): bool =
-        clip.contains_data(clip.formats.file_drop)
+        clip.contains_data clip.formats.file_drop
 #.}
 
 # ==Testing code==
 when isMainModule:
     clip.set_text("Hallo there.")
     if clip.contains_text: echo clip.get_text()
-    clip.set_file_drop_list(@[r"C:\a.txt"])
+    clip.set_file_drop_list @[r"C:\a.txt"]
     if clip.contains_file_drop_list: echo clip.get_file_drop_list()
