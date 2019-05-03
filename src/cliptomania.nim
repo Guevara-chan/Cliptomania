@@ -43,10 +43,22 @@ when not defined(clip):
 
     # --Methods goes here:
     # •Aux converters•
-    converter toBytes(src: string): Bytes =
+    converter toBytes*(src: string): Bytes =
         var wide_text = newWideCString(src)
         result = newSeq[byte](wide_text.len * 2 + 2)
         result[0].addr.copyMem wide_text[0].addr, result.len
+
+    converter toBytes*(src: seq[string]): Bytes =
+        var
+            buffer = newSeq[int16](DropFiles.sizeOf shr 1)
+        var header = cast[DropFiles](buffer)
+        header.fWide = 1
+        for entry in src:
+            for c in entry.runes: buffer &= c.int16
+            buffer &= 0.int16
+        for i in 1..2: buffer &= 0.int16
+        buffer.setLen buffer.len * 2
+        return cast[seq[byte]](buffer)
 
     proc `$`*(src: Bytes): string =
         var utf16 = src
@@ -116,16 +128,7 @@ when not defined(clip):
                 elif accum != "": result.add(accum); accum = ""
 
     proc set_file_drop_list*(Δ; list: seq[string]) =
-        var
-            buffer = newSeq[int16](DropFiles.sizeOf shr 1)
-            header = cast[DropFiles](buffer)
-        header.fWide = 1
-        for entry in list:
-            for c in entry.runes: buffer &= c.int16
-            buffer &= 0.int16
-        for i in 1..2: buffer &= 0.int16
-        buffer.setLen buffer.len * 2
-        clip.set_data clip.formats.file_drop, cast[seq[byte]](buffer)
+        clip.set_data clip.formats.file_drop, list
 
     proc contains_file_drop_list*(Δ): bool =
         clip.contains_data(clip.formats.file_drop)
