@@ -87,11 +87,6 @@ when not defined(clip):
         src.data
 
     # •Public methods•
-    proc clear*(Δ) =
-        open_clipboard()
-        empty_clipboard()
-        close_clipboard()
-
     proc get_data_list*(Δ; formats: varargs[clip.formats]): seq[clip.fragment] =
         result = newSeq[clip.fragment](0)
         open_clipboard()
@@ -118,6 +113,9 @@ when not defined(clip):
             buffer.global_unlock
             discard format.uint.set_clipboard_data buffer
         close_clipboard()
+
+    proc clear*(Δ) {.inline.} =
+        clip.set_data_list
 
     proc get_data*(Δ; format: clip.formats): clip.fragment {.inline.} =
         clip.get_data_list(format)[0]
