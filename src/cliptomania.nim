@@ -42,7 +42,7 @@ when not defined(clip):
         Δ: type clip
 
     # --Methods goes here:
-    # •Aux converters % helpers•
+    # •Aux converters & helpers•
     converter to_bytes*(src: string): Bytes =
         var wide_text = newWideCString(src)
         result = newSeq[byte](wide_text.len * 2 + 2)
