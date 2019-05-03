@@ -42,13 +42,13 @@ when not defined(clip):
         Δ: type clip
 
     # --Methods goes here:
-    # •Aux converters•
-    converter toBytes*(src: string): Bytes =
+    # •Aux converters % helpers•
+    converter to_bytes*(src: string): Bytes =
         var wide_text = newWideCString(src)
         result = newSeq[byte](wide_text.len * 2 + 2)
         result[0].addr.copyMem wide_text[0].addr, result.len
 
-    converter toBytes*(src: seq[string]): Bytes =
+    converter to_bytes*(src: seq[string]): Bytes =
         var
             buffer = newSeq[int16](DropFiles.sizeOf shr 1)
         var header = cast[DropFiles](buffer)
@@ -64,9 +64,9 @@ when not defined(clip):
         var utf16 = src
         return $(cast[WideCString](utf16[0].addr))
 
-    converter toDropList*(src: Bytes): seq[string] =
-        result = newSeq[string](0)
+    converter to_drop_list*(src: Bytes): seq[string] =
         var feed = src
+        result = newSeq[string](0)
         let utf16_feed = cast[seq[Rune16]](feed)
         if feed.len > 0:
             let header = cast[DropFiles](feed[0].addr)
@@ -75,6 +75,10 @@ when not defined(clip):
                 let c = (if header.fWide == 0: byte.Rune else: utf16_feed[idx+header.sizeOf shr 1].Rune)
                 if c.int != 0: accum &= $c
                 elif accum != "": result.add(accum); accum = ""
+
+    proc clip_format(src: auto): clip.formats =
+        when type(src) is seq[string]: clip.formats.file_drop
+        else: clip.formats.unicode_text
 
     # •Public methods•
     proc clear*(Δ) =
@@ -122,7 +126,7 @@ when not defined(clip):
         return $(clip.get_data clip.formats.unicode_text)
 
     proc set_text*(Δ; text: string) =
-        clip.set_data clip.formats.unicode_text, text
+        clip.set_data text.clipFormat, text
 
     proc contains_text*(Δ): bool =
         clip.contains_data clip.formats.unicode_text
@@ -131,7 +135,7 @@ when not defined(clip):
         clip.get_data clip.formats.file_drop
 
     proc set_file_drop_list*(Δ; list: seq[string]) =
-        clip.set_data clip.formats.file_drop, list
+        clip.set_data list.clipFormat, list
 
     proc contains_file_drop_list*(Δ): bool =
         clip.contains_data clip.formats.file_drop
