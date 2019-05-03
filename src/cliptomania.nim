@@ -31,7 +31,7 @@ else: {.fatal: "FAULT:: only Windows OS is supported for now !".}
 when not defined(clip):
     # --Service definitions:
     type
-        clip         = object
+        clip*        = object
         Bytes        = seq[byte]
         scrap        = tuple[format: clip_formats, data: Bytes]
         clip_formats = enum
@@ -142,8 +142,4 @@ when not defined(clip):
 #.}
 
 # ==Testing code==
-when isMainModule:
-    clip.set_text "Hallo there."
-    if clip.contains_text: echo clip.get_text()
-    clip.set_file_drop_list @[r"C:\a.txt"]
-    if clip.contains_file_drop_list: echo clip.get_file_drop_list()
+when isMainModule: include "../examples/basic.nim"
