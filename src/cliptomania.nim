@@ -62,7 +62,7 @@ when not defined(clip):
 
     proc `$`*(src: Bytes): string =
         var utf16 = src
-        return $(cast[WideCString](utf16[0].addr))
+        return $cast[WideCString](utf16[0].addr)
 
     converter to_drop_list*(src: Bytes): seq[string] =
         var feed = src
@@ -123,7 +123,7 @@ when not defined(clip):
         format.uint.clipboard_format_available != 0
 
     proc get_text*(Δ): string =
-        return $(clip.get_data clip.formats.unicode_text)
+        return $clip.get_data clip.formats.unicode_text
 
     proc set_text*(Δ; text: string) =
         clip.set_data text.clipFormat, text
