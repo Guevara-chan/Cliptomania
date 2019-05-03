@@ -113,34 +113,34 @@ when not defined(clip):
             discard format.uint.set_clipboard_data buffer
         close_clipboard()
 
-    proc get_data*(Δ; format: clip.formats): clip.fragment =
+    proc get_data*(Δ; format: clip.formats): clip.fragment {.inline.} =
         clip.get_data_list(format)[0]
 
-    proc set_data*(Δ; format: clip.formats, data: seq[byte]) =
+    proc set_data*(Δ; format: clip.formats, data: seq[byte]) {.inline.} =
         clip.set_data_list (format, data)
 
-    proc set_data*(Δ; fragment: clip.fragment) =
+    proc set_data*(Δ; fragment: clip.fragment) {.inline.} =
         clip.set_data_list (fragment.format, fragment.data)
 
-    proc contains_data*(Δ; format: clip.formats): bool =
+    proc contains_data*(Δ; format: clip.formats): bool {.inline.} =
         format.uint.clipboard_format_available != 0
 
-    proc get_text*(Δ): string =
+    proc get_text*(Δ): string {.inline.} =
         return $clip.get_data clip.formats.unicode_text
 
-    proc set_text*(Δ; text: string) =
+    proc set_text*(Δ; text: string) {.inline.} =
         clip.set_data text
 
-    proc contains_text*(Δ): bool =
+    proc contains_text*(Δ): bool {.inline.} =
         clip.contains_data clip.formats.unicode_text
 
-    proc get_file_drop_list*(Δ): seq[string] =
+    proc get_file_drop_list*(Δ): seq[string] {.inline.}=
         clip.get_data clip.formats.file_drop
 
-    proc set_file_drop_list*(Δ; list: seq[string]) =
+    proc set_file_drop_list*(Δ; list: seq[string]) {.inline.} =
         clip.set_data list
 
-    proc contains_file_drop_list*(Δ): bool =
+    proc contains_file_drop_list*(Δ): bool {.inline.} =
         clip.contains_data clip.formats.file_drop
 #.}
 
