@@ -18,8 +18,8 @@ when defined(windows):
     proc close_clipboard(): cint                   {.stdcall, dynlib: "user32", importc: "CloseClipboard", discardable.}
     proc empty_clipboard(): cint                   {.stdcall, dynlib: "user32", importc: "EmptyClipboard", discardable.}
     proc get_clipboard_data(format: uint): pointer {.stdcall, dynlib: "user32", importc: "GetClipboardData".}
-    proc set_clipboard_data(format:uint, mem:pointer): pointer {.stdcall, dynlib: "user32", importc: "SetClipboardData".}
-    proc clipboard_format_available(format:uint): cint {.stdcall, dynlib:"user32", importc:"IsClipboardFormatAvailable".}
+    proc set_clipboard_data(format:uint, mem:pointer): pointer {.stdcall, dynlib:"user32", importc:"SetClipboardData".}
+    proc clipboard_format_available(format:uint): cint {.stdcall, dynlib:"user32",importc:"IsClipboardFormatAvailable".}
     # •Global memory•
     proc global_size(mem: pointer): cint           {.stdcall, dynlib: "kernel32", importc: "GlobalSize".}
     proc global_lock(mem: pointer): pointer        {.stdcall, dynlib: "kernel32", importc: "GlobalLock".}
