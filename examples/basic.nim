@@ -4,7 +4,14 @@
 # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- #
 import "../src/cliptomania"
 
-clip.set_text "Hallo there."
-if clip.contains_text: echo clip.get_text()
-clip.set_file_drop_list @[r"C:\a.txt"]
-if clip.contains_file_drop_list: echo clip.get_file_drop_list()
+# Text data coverage.
+let text_data = "Hallo there." 
+echo "Adding '" & text_data & "' to clipboard..."
+clip.set_text text_data
+if clip.contains_text: echo "Retrieved back: " & clip.get_text()
+
+# Droplist coverage.
+let drop_data = @[r"C:\a.txt", r"d:\b.exe"]
+echo "\nAdding '" & $drop_data & "' to clipboard..."
+clip.set_file_drop_list drop_data
+if clip.contains_file_drop_list: echo "Retrieved back: " & $(clip.get_file_drop_list())
