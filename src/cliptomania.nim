@@ -32,24 +32,24 @@ when not defined(clip):
     # --Service definitions:
     type
         clip*        = object
-        DataFragment = tuple[format: clip_formats, data: seq[byte]]
+        ClipFragment = tuple[format: clip_formats, data: seq[byte]]
         clip_formats = enum
             text = 1, bitmap, metafile_picture, symbolic_link, dif, tiff, oem_text, dib, palette, pen_data, riff, 
             wave_audio, unicode_text, enhanced_metafile, file_drop, locale, dib_v5
     template formats*(_: type clip): auto  = clip_formats
-    template fragment*(_: type clip): auto = DataFragment
+    template fragment*(_: type clip): auto = ClipFragment
     using
         Δ: type clip
 
     # --Methods goes here:
     # •Aux converters & helpers•
-    converter to_data_fragment*(src: string): clip.fragment =
+    converter to_clip_fragment*(src: string): clip.fragment =
         var wide_text = newWideCString(src)
         var buffer = newSeq[byte](wide_text.len * 2 + 2)
         buffer[0].addr.copyMem wide_text[0].addr, buffer.len
         return (format: clip.formats.unicode_text, data: buffer)
 
-    converter to_data_fragment*(src: seq[string]): clip.fragment =
+    converter to_clip_fragment*(src: seq[string]): clip.fragment =
         var
             buffer = newSeq[int16](DropFiles.sizeOf shr 1)
             header = cast[DropFiles](buffer)
