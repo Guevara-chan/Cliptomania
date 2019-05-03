@@ -31,24 +31,25 @@ else: {.fatal: "FAULT:: only Windows OS is supported for now !".}
 when not defined(clip):
     # --Service definitions:
     type
-        clip*         = object
-        DataFragment* = tuple[format: clip_formats, data: seq[byte]]
-        clip_formats  = enum
+        clip*        = object
+        DataFragment = tuple[format: clip_formats, data: seq[byte]]
+        clip_formats = enum
             text = 1, bitmap, metafile_picture, symbolic_link, dif, tiff, oem_text, dib, palette, pen_data, riff, 
             wave_audio, unicode_text, enhanced_metafile, file_drop, locale, dib_v5
-    template formats*(_: type clip): auto = clip_formats
+    template formats*(_: type clip): auto  = clip_formats
+    template fragment*(_: type clip): auto = DataFragment
     using
         Δ: type clip
 
     # --Methods goes here:
     # •Aux converters & helpers•
-    converter to_data_fragment*(src: string): DataFragment =
+    converter to_data_fragment*(src: string): clip.fragment =
         var wide_text = newWideCString(src)
         var buffer = newSeq[byte](wide_text.len * 2 + 2)
         buffer[0].addr.copyMem wide_text[0].addr, buffer.len
         return (format: clip.formats.unicode_text, data: buffer)
 
-    converter to_data_fragment*(src: seq[string]): DataFragment =
+    converter to_data_fragment*(src: seq[string]): clip.fragment =
         var
             buffer = newSeq[int16](DropFiles.sizeOf shr 1)
             header = cast[DropFiles](buffer)
@@ -60,11 +61,11 @@ when not defined(clip):
         buffer.setLen buffer.len * 2
         return (format: clip.formats.file_drop, data: cast[seq[byte]](buffer))
 
-    proc `$`*(src: DataFragment): string =
+    proc `$`*(src: clip.fragment): string =
         var utf16 = src.data
         return $cast[WideCString](utf16[0].addr)
 
-    converter to_drop_list*(src: DataFragment): seq[string] =
+    converter to_drop_list*(src: clip.fragment): seq[string] =
         var feed = src.data
         result = newSeq[string](0)
         let utf16_feed = cast[seq[Rune16]](feed)
@@ -76,7 +77,7 @@ when not defined(clip):
                 if c.int != 0: accum &= $c
                 elif accum != "": result.add(accum); accum = ""
 
-    converter to_byte_seq(src: DataFragment): seq[byte] =
+    converter to_byte_seq(src: clip.fragment): seq[byte] =
         src.data
 
     # •Public methods•
@@ -86,7 +87,7 @@ when not defined(clip):
         close_clipboard()
 
     proc get_data_list*(Δ; formats: varargs[clip.formats]): seq[DataFragment] =
-        result = newSeq[DataFragment](0)
+        result = newSeq[clip.fragment](0)
         open_clipboard()
         for format in formats:
             let data = format.uint.get_clipboard_data
@@ -100,7 +101,7 @@ when not defined(clip):
             else: result.add (format, @[])
         close_clipboard()
 
-    proc set_data_list*(Δ; list: varargs[DataFragment]) =
+    proc set_data_list*(Δ; list: varargs[clip.fragment]) =
         open_clipboard()
         empty_clipboard()
         for entry in list:
@@ -112,13 +113,13 @@ when not defined(clip):
             discard format.uint.set_clipboard_data buffer
         close_clipboard()
 
-    proc get_data*(Δ; format: clip.formats): DataFragment =
+    proc get_data*(Δ; format: clip.formats): clip.fragment =
         clip.get_data_list(format)[0]
 
     proc set_data*(Δ; format: clip.formats, data: seq[byte]) =
         clip.set_data_list (format, data)
 
-    proc set_data*(Δ; fragment: DataFragment) =
+    proc set_data*(Δ; fragment: clip.fragment) =
         clip.set_data_list (fragment.format, fragment.data)
 
     proc contains_data*(Δ; format: clip.formats): bool =
