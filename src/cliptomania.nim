@@ -49,17 +49,18 @@ when not defined(clip):
         return (format: clip.formats.unicode_text, data: buffer)
 
     converter to_clip_fragment*(src: seq[string]): clip.fragment =
-        var
+        var 
             buffer = newSeq[int16](DropFiles.sizeOf shr 1)
-            header = cast[DropFiles](buffer)
+            header: DropFiles
         header.fWide = 1
+        header.pFiles = DropFiles.sizeOf.int32
+        buffer[0].addr.copyMem header.addr, header.sizeOf
         for entry in src:
             var utf16_path = cast[seq[int16]](entry.to_clip_fragment.data)
             utf16_path.setLen utf16_path.len shr 1
             for c in utf16_path: buffer &= c
-        for i in 1..2: buffer &= 0.int16
+        buffer &= 0.int16
         buffer.setLen buffer.len * 2
-        echo cast[seq[byte]](buffer)
         return (format: clip.formats.file_drop, data: cast[seq[byte]](buffer))
 
     proc `$`*(src: clip.fragment): string =
@@ -69,12 +70,16 @@ when not defined(clip):
     converter to_drop_list*(src: clip.fragment): seq[string] =
         var feed = src.data
         result = newSeq[string](0)
-        let utf16_feed = cast[seq[int16]](feed)
+        var utf16_feed = cast[seq[int16]](feed)
+        utf16_feed.setLen feed.len
         if feed.len > 0:
-            let header = cast[DropFiles](feed[0].addr)
-            var accum: seq[int16] = @[]
-            for idx, byte in feed[header.sizeOf..^1]:
-                let c = (if header.fWide == 0: byte.int16 else: utf16_feed[idx+header.sizeOf shr 1])
+            var 
+                header: DropFiles
+                accum: seq[int16] = @[]
+            header.addr.copyMem feed[0].addr, header.sizeOf
+            echo header
+            for idx, byte in feed[header.pFiles..^1]:
+                let c = (if header.fWide == 0: byte.int16 else: utf16_feed[idx+header.pFiles shr 1])
                 if c != 0: accum &= c
                 elif accum != @[]:
                     accum.setLen accum.len * 2
