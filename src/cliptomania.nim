@@ -86,7 +86,7 @@ when not defined(clip):
         empty_clipboard()
         close_clipboard()
 
-    proc get_data_list*(Δ; formats: varargs[clip.formats]): seq[DataFragment] =
+    proc get_data_list*(Δ; formats: varargs[clip.formats]): seq[clip.fragment] =
         result = newSeq[clip.fragment](0)
         open_clipboard()
         for format in formats:
