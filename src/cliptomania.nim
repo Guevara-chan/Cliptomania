@@ -117,7 +117,7 @@ when not defined(clip):
 
     proc get_file_drop_list*(Δ): seq[string] =
         result = newSeq[string](0)
-        var feed = clip.get_data(clip.formats.file_drop)
+        var feed = clip.get_data clip.formats.file_drop
         let utf16_feed = cast[seq[Rune16]](feed)
         if feed.len > 0:
             let header = cast[DropFiles](feed[0].addr)
@@ -136,7 +136,7 @@ when not defined(clip):
 
 # ==Testing code==
 when isMainModule:
-    clip.set_text("Hallo there.")
+    clip.set_text "Hallo there."
     if clip.contains_text: echo clip.get_text()
     clip.set_file_drop_list @[r"C:\a.txt"]
     if clip.contains_file_drop_list: echo clip.get_file_drop_list()
