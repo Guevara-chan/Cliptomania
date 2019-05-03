@@ -5,6 +5,7 @@ Full compatibility is not prioritized at given moment, but desirable in future.
 
 # •Featuræ•
 * Multiple data formats dispatch.
+* Converter-based data I/O interface.
 * Enforced prefix (`clip.`) API isolation.
 
 # •Remark•
