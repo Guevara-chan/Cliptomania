@@ -31,9 +31,9 @@ else: {.fatal: "FAULT:: only Windows OS is supported for now !".}
 when not defined(clip):
     # --Service definitions:
     type
-        clip*        = object
-        DataFragment = tuple[format: clip_formats, data: seq[byte]]
-        clip_formats = enum
+        clip*         = object
+        DataFragment* = tuple[format: clip_formats, data: seq[byte]]
+        clip_formats  = enum
             text = 1, bitmap, metafile_picture, symbolic_link, dif, tiff, oem_text, dib, palette, pen_data, riff, 
             wave_audio, unicode_text, enhanced_metafile, file_drop, locale, dib_v5
     template formats*(_: type clip): auto = clip_formats
