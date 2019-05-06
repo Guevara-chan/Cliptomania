@@ -38,7 +38,9 @@ when not defined(clip):
     template formats*(_: type clip): auto  = clip_formats
     template fragment*(_: type clip): auto = ClipFragment
     using
-        Δ: type clip
+        Δ:      type clip
+        format: clip.formats
+
 
     # --Methods goes here:
     # •Aux converters & helpers•
@@ -120,16 +122,16 @@ when not defined(clip):
     proc clear*(Δ) {.inline.} =
         clip.set_data_list
 
-    proc get_data*(Δ; format: clip.formats): clip.fragment {.inline.} =
+    proc get_data*(Δ, format): clip.fragment {.inline.} =
         clip.get_data_list(format)[0]
 
-    proc set_data*(Δ; format: clip.formats, data: seq[byte]) {.inline.} =
+    proc set_data*(Δ, format; data: seq[byte]) {.inline.} =
         clip.set_data_list (format, data)
 
     proc set_data*(Δ; fragment: clip.fragment) {.inline.} =
         clip.set_data_list (fragment.format, fragment.data)
 
-    proc contains_data*(Δ; format: clip.formats): bool {.inline.} =
+    proc contains_data*(Δ, format): bool {.inline.} =
         format.uint.clipboard_format_available != 0
 
     proc get_text*(Δ): string {.inline.} =
