@@ -41,7 +41,6 @@ when not defined(clip):
         Δ:      type clip
         format: clip.formats
 
-
     # --Methods goes here:
     # •Aux converters & helpers•
     converter to_clip_fragment*(src: string): clip.fragment =
@@ -74,9 +73,8 @@ when not defined(clip):
         utf16_feed.setLen feed.len
         if feed.len > 0:
             var 
-                header: DropFiles
+                header = cast[ptr DropFiles](feed[0].addr)
                 accum: seq[int16] = @[]
-            header.addr.copyMem feed[0].addr, header.sizeOf
             for idx, byte in feed[header.pFiles..^1]:
                 let c = (if header.fWide == 0: byte.int16 else: utf16_feed[idx+header.pFiles shr 1])
                 if c != 0: accum &= c
