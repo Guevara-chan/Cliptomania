@@ -52,8 +52,9 @@ when not defined(clip):
     converter to_clip_fragment*(src: seq[string]): clip.fragment =
         var 
             buffer = newSeq[int16](DropFiles.sizeOf shr 1)
-            header = DropFiles(fWide: 1, pFiles: DropFiles.sizeOf.int32)
-        buffer[0].addr.copyMem header.addr, header.sizeOf
+            header = cast[ptr DropFiles](buffer[0].addr)
+        header.fWide = 1
+        header.pFiles = DropFiles.sizeOf.int32
         for entry in src:
             var utf16_path = cast[seq[int16]](entry.to_clip_fragment.data)
             utf16_path.setLen utf16_path.len shr 1
